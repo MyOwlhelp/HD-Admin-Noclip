@@ -1,0 +1,204 @@
+-- disguise as a Loading gui.
+
+local player = game.Players.LocalPlayer
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "Loading"
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- Create Frame
+local frame = Instance.new("Frame")
+frame.Name = "SecurityCheck"
+frame.Size = UDim2.new(0, 238, 0, 176)
+frame.Position = UDim2.new(0.425, 0, 0.264, 0)
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+frame.BackgroundTransparency = 0.1
+frame.Active = true -- Needed for dragging
+frame.Parent = screenGui
+
+-- Create Title TextLabel
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "TitleLabel"
+titleLabel.Size = UDim2.new(0, 238, 0, 34)
+titleLabel.Position = UDim2.new(0, 0, 0, 0)
+titleLabel.BackgroundColor3 = Color3.fromRGB(167, 0, 3)
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.Text = "Noclip"
+titleLabel.Parent = frame
+
+-- Create Status Label
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Name = "StatusLabel"
+statusLabel.Size = UDim2.new(1, -20, 0, 30)
+statusLabel.Position = UDim2.new(0, 10, 0, 44)
+statusLabel.Text = "Status:"
+statusLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Parent = frame
+
+-- Create Status Indicator
+local statusIndicator = Instance.new("TextLabel")
+statusIndicator.Name = "StatusIndicator"
+statusIndicator.Size = UDim2.new(0.5, -20, 0, 30)
+statusIndicator.Position = UDim2.new(0.5, 0, 0, 44)
+statusIndicator.Text = "Off"
+statusIndicator.TextColor3 = Color3.fromRGB(255, 0, 0)
+statusIndicator.BackgroundTransparency = 1
+statusIndicator.Parent = frame
+
+-- Create TextButton
+local textButton = Instance.new("TextButton")
+textButton.Name = "Main"
+textButton.Size = UDim2.new(1, -20, 0, 30)
+textButton.Position = UDim2.new(0, 10, 0, 84)
+textButton.Text = "Enable"
+textButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+textButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+textButton.Parent = frame
+
+-- Create Speed Label
+local speedLabel = Instance.new("TextLabel")
+speedLabel.Name = "SpeedLabel"
+speedLabel.Size = UDim2.new(0.4, 0, 0, 30)
+speedLabel.Position = UDim2.new(0, 10, 0, 124)
+speedLabel.Text = "Speed:"
+speedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedLabel.BackgroundTransparency = 1
+speedLabel.Parent = frame
+
+-- Create Speed TextBox
+local speedBox = Instance.new("TextBox")
+speedBox.Name = "SpeedBox"
+speedBox.Size = UDim2.new(0.6, -10, 0, 30)
+speedBox.Position = UDim2.new(0.4, 0, 0, 124)
+speedBox.Text = "100"
+speedBox.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+speedBox.BackgroundTransparency = 0.1
+speedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedBox.Parent = frame
+
+-- Make Frame draggable
+frame.Draggable = true
+
+local userinput = game:GetService("UserInputService")
+local cam = workspace.CurrentCamera
+local baseSpeed = 7
+local speed = baseSpeed
+local flying = false
+local toolEquipped = true
+
+function getNextMovement()
+    local nextMove = Vector3.new(0,0,0)
+    if userinput:IsKeyDown(Enum.KeyCode.W) then
+        nextMove = nextMove + Vector3.new(0,0,-1)
+    end
+    if userinput:IsKeyDown(Enum.KeyCode.S) then
+        nextMove = nextMove + Vector3.new(0,0,1)
+    end
+    if userinput:IsKeyDown(Enum.KeyCode.A) then
+        nextMove = nextMove + Vector3.new(-1,0,0)
+    end
+    if userinput:IsKeyDown(Enum.KeyCode.D) then
+        nextMove = nextMove + Vector3.new(1,0,0)
+    end
+    
+    if userinput:IsKeyDown(Enum.KeyCode.Space) then
+        nextMove = nextMove + Vector3.new(0,1,0)
+    elseif userinput:IsKeyDown(Enum.KeyCode.LeftControl) then
+        nextMove = nextMove + Vector3.new(0,-1,0)
+    end
+    return CFrame.new(nextMove * speed)
+end
+
+function toggleFlying()
+    flying = not flying
+    if flying then
+        statusIndicator.Text = "On"
+        statusIndicator.TextColor3 = Color3.fromRGB(0, 255, 0)
+        textButton.Text = "Disable"
+        textButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+    else
+        statusIndicator.Text = "Off"
+        statusIndicator.TextColor3 = Color3.fromRGB(255, 0, 0)
+        textButton.Text = "Enable"
+        textButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    end
+    
+    local human = player.Character.Humanoid
+    local rootpart = player.Character.HumanoidRootPart
+    human.PlatformStand = flying
+    rootpart.Anchored = flying
+
+    if flying then
+        while flying do
+            wait()
+            local look = (cam.Focus.Position - cam.CFrame.Position).Unit
+            local pos = rootpart.Position
+            local nextMove = getNextMovement()
+            rootpart.CFrame = CFrame.new(pos, pos + look) * nextMove
+        end
+    else
+        player.Character.Humanoid.PlatformStand = false
+        player.Character.HumanoidRootPart.Anchored = false
+    end
+end
+
+textButton.MouseButton1Click:Connect(toggleFlying)
+
+userinput.InputBegan:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.E then
+        toggleFlying()
+    end
+end)
+
+speedBox.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        local displayedSpeed = tonumber(speedBox.Text)
+        if displayedSpeed then
+            if displayedSpeed < 100 then
+                textButton.Active = false
+                flying = false
+                toggleFlying()
+                
+                -- Create ServerCheck frame
+                local serverCheck = Instance.new("Frame")
+                serverCheck.Name = "ServerCheck"
+                serverCheck.Size = UDim2.new(0, 238, 0, 176)
+                serverCheck.Position = UDim2.new(1, -238, 1, -176)
+                serverCheck.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+                serverCheck.BackgroundTransparency = 0.1
+                serverCheck.Parent = screenGui
+                
+                -- Create Warning TextLabel inside ServerCheck
+                local warningLabel = Instance.new("TextLabel")
+                warningLabel.Size = UDim2.new(1, 0, 1, 0)
+                warningLabel.BackgroundTransparency = 1
+                warningLabel.TextScaled = true
+                warningLabel.Text = "⚠Cannot go below 100!"
+                warningLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                warningLabel.Parent = serverCheck
+
+                wait(10)
+
+                -- Fade away effect
+                for i = 0.1, 1, 0.1 do
+                    serverCheck.BackgroundTransparency = i
+                    warningLabel.TextTransparency = i
+                    wait(0.1)
+                end
+                
+                serverCheck:Destroy()
+
+                -- Wait 0.5 seconds and then reset to default display value
+                wait(0.5)
+                speedBox.Text = "100"
+            else
+                textButton.Active = true
+                speed = baseSpeed + (displayedSpeed - 100) * 2
+            end
+        else
+            speedBox.Text = "100" -- Reset to initial display value if input is invalid
+        end
+    end
+end)
