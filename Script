@@ -1,4 +1,4 @@
--- disguise as a Loading gui.
+-- V2
 
 local player = game.Players.LocalPlayer
 
@@ -11,7 +11,7 @@ screenGui.Parent = player:WaitForChild("PlayerGui")
 local frame = Instance.new("Frame")
 frame.Name = "SecurityCheck"
 frame.Size = UDim2.new(0, 238, 0, 176)
-frame.Position = UDim2.new(0.425, 0, 0.264, 0)
+frame.Position = UDim2.new(0.819, 0, 0.642, 0)
 frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 frame.BackgroundTransparency = 0.1
 frame.Active = true -- Needed for dragging
@@ -77,6 +77,22 @@ speedBox.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 speedBox.BackgroundTransparency = 0.1
 speedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 speedBox.Parent = frame
+
+-- Create TextButton named "Close"
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "Close"
+closeButton.Size = UDim2.new(0, 30, 0, 20)
+closeButton.Position = UDim2.new(0.87, 0, 0, 0)
+closeButton.Text = "X"
+closeButton.BackgroundTransparency = 1
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.Parent = frame
+closeButton.TextScaled = true
+
+-- Connect the button click to destroy the parent
+closeButton.MouseButton1Click:Connect(function()
+    closeButton.Parent:Destroy()
+end)
 
 -- Make Frame draggable
 frame.Draggable = true
